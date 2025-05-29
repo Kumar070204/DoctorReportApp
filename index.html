@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#ffffff">
+  <title>Doctor Report</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="manifest" href="/manifest.json">
+</head>
+<body class="bg-gray-100 font-sans">
+  <div class="container mx-auto p-4">
+    <h1 class="text-2xl font-bold text-center mb-3">Daily Doctor Report</h1>
+    <div class="bg-white p-6 rounded shadow-md">
+      <form id="doctorForm" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium">S.No</label>
+          <input type="number" id="sno" class="mt-1 p-2 border rounded w-full" placeholder="Auto-filled" readonly>
+          <label><input type="checkbox" id="manualSno" class="mr-2">Manual</label>
+        </div>
+        <div>
+          <label class="block text-sm font-medium">Date</label>
+          <input type="date" id="date" class="mt-1 p-2 border rounded w-full">
+          <label><input type="checkbox" id="manualDate" class="mr-2">Manual</label>
+        </div>
+        <div>
+          <label class="block text-sm font-medium">Day</label>
+          <input type="text" id="day" class="mt-1 p-2 border rounded w-full" readonly>
+          <label><input type="checkbox" id="manualDay" class="mr-2">Manual</label>
+        </div>
+        <div>
+          <label class="block text-sm font-medium">Consultant Name</label>
+          <input type="text" id="consultant" class="mt-1 p-2 border rounded w-full" list="consultantList">
+          <datalist id="consultantList"></datalist>
+        </div>
+        <div>
+          <label class="block text-sm font-medium">Speciality</label>
+          <input type="text" id="speciality" class="mt-1 p-2 border rounded w-full" list="specialityList">
+          <datalist id="specialityList"></datalist>
+        </div>
+        <div>
+          <label class="block text-sm font-medium">Area</label>
+          <input type="text" id="area" class="mt-1 p-2 border rounded w-full" list="areaList">
+          <datalist id="areaList"></datalist>
+        </div>
+        <div>
+          <label class="block text-sm font-medium">Remarks</label>
+          <textarea id="remarks" class="mt-1 p-2 border rounded w-full" rows="4"></textarea>
+        </div>
+        <button type="submit" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">Save Entry</button>
+      </form>
+      <button id="generateExcel" class="mt-4 w-full bg-green-600 text-white p-2 rounded hover:bg-green-700">Generate Excel</button>
+    </div>
+    <div id="entries" class="mt-4"></div>
+  </div>
+
+  <script>
+    // Doctor database
+    let doctors = [
+      { name: "Dr. Ashok Kumar", speciality: "Pediatrician", area: "Royapettah" },
+      { name: "Dr. Prabhu Raj", speciality: "General Physician", area: "Royapettah" },
+      { name: "Dr. Radhika Balakrishnan", speciality: "General Physician", area: "Royapettah" },
+      { name: "Dr. Mohamed Safi", speciality: "Dentist", area: "Triplicane" },
+      { name: "Dr. Neeraja", speciality: "General Physician", area: "Triplicane" },
+      { name: "Dr.C.P.V. Ramana", speciality: "General Surgery", area: "Triplicane" },
+      { name: "Dr.Anuradha Ramana", speciality: "Gynacologist", area: "Triplicane" },
+      { name: "Dr.Ambrish", speciality: "General Physician", area: "Royapettah" },
+      { name: "Dr. Gopinath", speciality: "General Physician", area: "Royapettah" },
+      { name: "Dr. Mohamed Samullah", speciality: "General Physician", area: "Royapettah" },
+      { name: "Dr.C.P.Sekar", speciality: "General Physician", area: "Mylapore" },
+      { name: "Dr. Jeeva Jerome", speciality: "General Physician", area: "Mandaiveli" },
+      { name: "Dr. Abhinaya Madhuri", speciality: "Gynacologist", area: "Mandaiveli" },
+      { name: "Dr. Meenakshi Sundaram", speciality: "General Physician", area: "Royapettah" },
+      { name: "Dr. Vijaya Kumari", speciality: "General Physician", area: "Triplicane" },
+      { name: "Dr. Gunalan", speciality: "General Physician", area: "Triplicane" },
+      { name: "Dr. Raameshan", speciality: "General Physician", area: "Triplicane" },
+      { name: "Dr. Thulasi Das", speciality: "ENT", area: "Santhome" },
+      { name: "Dr. Raman", speciality: "Orthopedics", area: "Triplicane" },
+      { name: "Dr.T.G.Vinayagam", speciality: "General Physician", area: "Triplicane" },
+      { name: "Dr.M.A.Fathimunissa", speciality: "Gynacologist", area: "Triplicane" },
+      { name: "Dr.Dawood", speciality: "General Physician", area: "Royapettah" },
+      { name: "Dr.J.R. Subramanyam", speciality: "General Physician", area: "Mandaveli" },
+      { name: "Dr. N.Raameshan", speciality: "General Physician", area: "Triplicane" },
+      { name: "Dr. Venkatesan", speciality: "General Physician", area: "Mylapore" },
+      { name: "Dr. Ramakrishna Rao", speciality: "General Physician", area: "Mylapore" },
+      { name: "Dr.A.K. Chidambaram", speciality: "Pediatrician", area: "Royapettah" },
+      { name: "Dr.Manju", speciality: "General Physician", area: "Triplicane" },
+      { name: "Dr.Krishnasagaram", speciality: "General Surgeon", area: "Gopalapuram" },
+      { name: "Dr.E.Shanthi", speciality: "General Physician", area: "Mylapore" },
+      { name: "Dr.Kavipriya", speciality: "General Physician", area: "Royapettah" },
+      { name: "Dr.Malarvannan", speciality: "General Physician", area: "Royapettah" },
+      { name: "Dr.Vandhana", speciality: "Sonalogist", area: "Triplicane" },
+      { name: "Dr. Karthikeyani", speciality: "Pediatrician", area: "Gopalapuram" },
+      { name: "Dr. Natarajan", speciality: "General Physician", area: "Mylapore" },
+      { name: "Dr. Shanthi", speciality: "General Physician", area: "Mylapore" },
+      { name: "Dr. Javid", speciality: "General Physician", area: "Mandaveli" },
+      { name: "Dr. Manjunath", speciality: "General Physician", area: "Mylapore" },
+      { name: "Dr. Sri Ganga", speciality: "General Physician", area: "Mandaveli" },
+      { name: "Dr.N.Suhumar", speciality: "General Physician", area: "Mandaveli" },
+      { name: "Dr. Chanduru Sundaramurthy", speciality: "General Physician", area: "Alwarpet" },
+      { name: "Dr. Sakeen Ahmed", speciality: "General Physician", area: "Pudupet" },
+      { name: "Dr. Saima", speciality: "General Physician", area: "Triplicane" },
+      { name: "Dr. Surya Prakash", speciality: "General Physician", area: "Triplicane" },
+      { name: "Dr. Meera Govindarajan", speciality: "Pathologist", area: "Alwarpet" },
+      { name: "Dr. Ram Chidambaram", speciality: "Orthopedician", area: "Alwarpet" },
+      { name: "Dr. Renu Jolly", speciality: "ENT", area: "Alwarpet" },
+      { name: "Dr. Sai Ramanan", speciality: "General Physician", area: "Royapettah" },
+      { name: "Dr. Shakeel Basha", speciality: "General Physician", area: "Royapettah" },
+      { name: "Dr. Chithra", speciality: "General Physician", area: "Mandaveli" },
+      { name: "Dr. Vishnu Priya", speciality: "Orthopedician", area: "Alwarpet" },
+      { name: "Dr. Nimrah Amthul", speciality: "Gynacologist", area: "Royapettah" },
+      { name: "Dr. Arun Kumar", speciality: "General Surgeon", area: "Gopalapuram" },
+      { name: "Dr. V. Raj Prabhu", speciality: "Dentist", area: "Mylapore" },
+      { name: "Dr. Kathikeyani", speciality: "Pediatrician", area: "Gopalapuram" }
+    ];
+
+    // Load doctors from localStorage if available
+    if (localStorage.getItem('doctors')) {
+      doctors = JSON.parse(localStorage.getItem('doctors'));
+    }
+
+    // Daily entries
+    let entries = [];
+
+    // Initialize form
+    const form = document.getElementById('doctorForm');
+    const snoInput = document.getElementById('sno');
+    const dateInput = document.getElementById('date');
+    const dayInput = document.getElementById('day');
+    const consultantInput = document.getElementById('consultant');
+    const specialityInput = document.getElementById('speciality');
+    const areaInput = document.getElementById('area');
+    const remarksInput = document.getElementById('remarks');
+    const manualSno = document.getElementById('manualSno');
+    const manualDate = document.getElementById('manualDate');
+    const manualDay = document.getElementById('manualDay');
+    const generateExcelBtn = document.getElementById('generateExcel');
+    const entriesDiv = document.getElementById('entries');
+
+    // Populate datalists for autocomplete
+    function updateDatalists() {
+      const consultantList = document.getElementById('consultantList');
+      const specialityList = document.getElementById('specialityList');
+      const areaList = document.getElementById('areaList');
+      consultantList.innerHTML = doctors.map(d => `<option value="${d.name}">`).join('');
+      specialityList.innerHTML = [...new Set(doctors.map(d => d.speciality))].map(s => `<option value="${s}">`).join('');
+      areaList.innerHTML = [...new Set(doctors.map(d => d.area))].map(a => `<option value="${a}">`).join('');
+    }
+    updateDatalists();
+
+    // Auto-fill fields
+    function autoFill() {
+      const today = new Date();
+      if (!manualSno.checked) {
+        snoInput.value = entries.length + 1;
+      }
+      if (!manualDate.checked) {
+        dateInput.value = today.toISOString().split('T')[0];
+      }
+      if (!manualDay.checked) {
+        dayInput.value = today.toLocaleDateString('en-US', { weekday: 'long' });
+      }
+    }
+    autoFill();
+
+    // Update day when date changes
+    dateInput.addEventListener('change', () => {
+      if (!manualDay.checked) {
+        const date = new Date(dateInput.value);
+        dayInput.value = date.toLocaleDateString('en-US', { weekday: 'long' });
+      }
+    });
+
+    // Enable/disable manual inputs
+    manualSno.addEventListener('change', () => {
+      snoInput.readOnly = !manualSno.checked;
+      if (!manualSno.checked) snoInput.value = entries.length + 1;
+    });
+    manualDate.addEventListener('change', () => {
+      if (!manualDate.checked) {
+        const today = new Date();
+        dateInput.value = today.toISOString().split('T')[0];
+        if (!manualDay.checked) {
+          dayInput.value = today.toLocaleDateString('en-US', { weekday: 'long' });
+        }
+      }
+    });
+    manualDay.addEventListener('change', () => {
+      dayInput.readOnly = !manualDay.checked;
+      if (!manualDay.checked) {
+        const date = new Date(dateInput.value);
+        dayInput.value = date.toLocaleDateString('en-US', { weekday: 'long' });
+      }
+    });
+
+    // Auto-fill speciality and area based on consultant
+    consultantInput.addEventListener('input', () => {
+      const doctor = doctors.find(d => d.name.toLowerCase() === consultantInput.value.toLowerCase());
+      if (doctor) {
+        specialityInput.value = doctor.speciality;
+        areaInput.value = doctor.area;
+      } else {
+        specialityInput.value = '';
+        areaInput.value = '';
+      }
+    });
+
+    // Form submission
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const entry = {
+        sno: snoInput.value || entries.length + 1,
+        date: dateInput.value,
+        day: dayInput.value,
+        consultant: consultantInput.value,
+        speciality: specialityInput.value,
+        area: areaInput.value,
+        remarks: remarksInput.value,
+      };
+      entries.push(entry);
+
+      // Update doctor database if new
+      if (!doctors.some(d => d.name.toLowerCase() === entry.consultant.toLowerCase())) {
+        doctors.push({
+          name: entry.consultant,
+          speciality: entry.speciality,
+          area: entry.area,
+        });
+        localStorage.setItem('doctors', JSON.stringify(doctors));
+        updateDatalists();
+      }
+
+      // Display entry
+      const entryDiv = document.createElement('div');
+      entryDiv.className = 'bg-gray-100 p-2 my-2 rounded';
+      entryDiv.innerHTML = `
+        <p><strong>S.No:</strong> ${entry.sno}</p>
+        <p><strong>Date:</strong> ${entry.date}</p>
+        <p><strong>Day:</strong> ${entry.day}</p>
+        <p><strong>Consultant:</strong> ${entry.consultant}</p>
+        <p><strong>Speciality:</strong> ${entry.speciality}</p>
+        <p><strong>Area:</strong> ${entry.area}</p>
+        <p><strong>Remarks:</strong> ${entry.remarks}</p>
+      `;
+      entriesDiv.appendChild(entryDiv);
+
+      // Reset form
+      form.reset();
+      autoFill();
+    });
+
+    // Generate Excel via serverless function
+    generateExcelBtn.addEventListener('click', async () => {
+      try {
+        if (!entries.length) {
+          alert('No entries to export. Please save at least one entry.');
+          return;
+        }
+
+        // Send entries to serverless function
+        const response = await fetch('/api/excel', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ entries })
+        });
+
+        if (!response.ok) {
+          throw new Error(`Server error: ${response.statusText}`);
+        }
+
+        // Download Excel file
+        const blob = await response.blob();
+        const today = new Date().toISOString().split('T')[0];
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Daily Report ${today} Ganesan.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        alert('Excel file generated successfully!');
+      } catch (error) {
+        alert('Error generating Excel file: ' + error.message);
+        console.error('Excel generation error:', error);
+      }
+    });
+  </script>
+</body>
+</html>
